@@ -2,8 +2,10 @@ import streamlit as st
 from deep_translator import GoogleTranslator
 import ply.lex as lex
 import ply.yacc as yacc
-# Ceci est un commentaire pour tester
-#sir ra ghandrbk
+import speech_recognition as sr
+import difflib
+
+
 
 
 # ======================================
@@ -53,15 +55,16 @@ english_poems = [
 # Analyseur lexical
 # ======================================
 
-tokens = ['WORD', 'COMMA', 'DOT', 'QUESTION', 'EXCLAMATION', 'NEWLINE']
+tokens = ['WORD', 'COMMA', 'DOT', 'QUESTION', 'EXCLAMATION', 'NEWLINE','QUOTE']
 t_COMMA = r','
 t_DOT = r'\.'
 t_QUESTION = r'\?'
 t_EXCLAMATION = r'!'
+t_QUOTE = r"[’']"
 t_ignore = ' \t'
 
 def t_WORD(t):
-    r'[a-zA-Z\u0621-\u064A\u0600-\u06FF]+'
+    r"[a-zA-ZÀ-ÿ\u0621-\u064A\u0600-\u06FF'-]+"
     return t
 
 def t_NEWLINE(t):
@@ -102,21 +105,103 @@ def analyze_lexical(input_text, poems):
 # Analyse syntaxique et sémantique
 # ======================================
 
-def analyze_syntax(input_text):
-    try:
-        parser = yacc.yacc()
-        parser.parse(input_text)
-        return "Aucune erreur syntaxique détectée."
-    except Exception as e:
-        return f"Erreur syntaxique : {e}"
+
+
+# Règles syntaxiques pour les poèmes
+def p_poem(p):
+    '''poem : line
+            | line NEWLINE poem'''
+    pass
+
+def p_line(p):
+    '''line : WORD
+            | WORD COMMA line
+            | WORD DOT
+            | WORD EXCLAMATION
+            | WORD QUESTION
+            | WORD QUOTE line
+            | QUOTE line QUOTE
+            | line WORD'''
+    pass
+
+
+def p_error(p):
+    """
+    Gestion des erreurs syntaxiques.
+    """
+    if p:
+        raise Exception(f"Erreur syntaxique au token : {p.value}")
+    else:
+        raise Exception("Erreur syntaxique : fin de fichier inattendue.")
+import re
 
 def analyze_semantics(input_text):
+    """
+    Analyse sémantique d'un poème pour détecter des anomalies.
+    """
     observations = []
+
+    # Vérification de la longueur minimale
     if len(input_text.split()) < 3:
-        observations.append("Le texte semble trop court.")
+        observations.append("Le texte semble trop court pour être un poème.")
+
+    # Vérification des majuscules
     if input_text == input_text.upper():
-        observations.append("Le texte est entièrement en majuscules, vérifiez la cohérence.")
+        observations.append("Le texte est entièrement en majuscules, ce qui peut être incohérent pour un poème.")
+
+
+    # Vérification des virgules consécutives
+    if re.search(r',,{1,}', input_text):
+        observations.append("Le texte contient des virgules consécutives, ce qui est incorrect.")
+
+    # Vérification des points consécutifs
+    if re.search(r'\.{2,}', input_text):
+        observations.append("Le texte contient des points consécutifs, ce qui est incorrect.")
+
+    # Vérification des points d'exclamation consécutifs
+    if re.search(r'!{2,}', input_text):
+        observations.append("Le texte contient des points d'exclamation consécutifs, ce qui est incorrect.")
+
+    # Vérification des points d'interrogation consécutifs
+    if re.search(r'\?{2,}', input_text):
+        observations.append("Le texte contient des points d'interrogation consécutifs, ce qui est incorrect.")
+
+
+
+    # Vérification des lignes vides
+    lines = input_text.split('\n')
+    for i, line in enumerate(lines):
+        if len(line.strip()) == 0 and i != len(lines) - 1:  # Ignorer la dernière ligne vide
+            observations.append("Une ou plusieurs lignes sont vides, ce qui peut indiquer une incohérence.")
+
+    # Vérification des lignes sans mots
+    for line in lines:
+        words = [word for word in line.split() if word.isalpha()]
+        if len(words) == 0 and len(line.strip()) > 0:
+            observations.append(f"La ligne suivante ne contient aucun mot : \"{line.strip()}\"")
+
     return observations
+
+
+def analyze_syntax(input_text):
+    """
+    Analyse syntaxique d'un texte d'entrée pour vérifier s'il respecte les règles définies pour les poèmes.
+    """
+    try:
+        # Crée le parser à partir des règles définies
+        parser = yacc.yacc()
+
+        # Effectue l'analyse syntaxique sur le texte d'entrée
+        parser.parse(input_text)
+
+        # Si aucune erreur détectée
+        return "Aucune erreur syntaxique détectée."
+    except Exception as e:
+        # Retourne un message d'erreur clair
+        return f"Erreur syntaxique : {e}"
+
+
+
 
 # ======================================
 # Traduction
@@ -131,6 +216,47 @@ def translate_line(line, source_lang, target_lang):
 
 def translate_poem(poem_lines, source_lang, target_lang):
     return [translate_line(line, source_lang, target_lang) for line in poem_lines]
+
+
+# ======================================
+# Reconnaissance vocale et analyse
+# ======================================
+
+def transcribe_audio():
+    """
+    Reconnaît un poème récité via le microphone et le transcrit.
+    :return: Texte transcrit ou message d'erreur.
+    """
+    recognizer = sr.Recognizer()
+    try:
+        with sr.Microphone() as source:
+            st.info("Veuillez réciter votre poème...")
+            recognizer.adjust_for_ambient_noise(source)  # Ajuste pour le bruit ambiant
+            audio = recognizer.listen(source)
+            st.info("Transcription en cours...")
+            transcription = recognizer.recognize_google(audio, language="fr-FR")
+            return transcription
+    except sr.UnknownValueError:
+        return "Erreur : Impossible de comprendre l'audio."
+    except sr.RequestError as e:
+        return f"Erreur de reconnaissance vocale : {e}"
+
+
+def compare_transcription_with_poems(transcribed_text, known_poems):
+    """
+    Compare une transcription avec des poèmes connus pour trouver des correspondances.
+    :param transcribed_text: Texte transcrit via reconnaissance vocale.
+    :param known_poems: Liste des poèmes connus.
+    :return: Liste de correspondances avec leurs scores.
+    """
+    matches = []
+    for poem in known_poems:
+        similarity = difflib.SequenceMatcher(None, transcribed_text, poem).ratio()
+        if similarity > 0.6:  # Seuil de similarité
+            matches.append((poem, similarity))
+    matches.sort(key=lambda x: x[1], reverse=True)  # Trie par score décroissant
+    return matches
+
 
 # ======================================
 # Application Streamlit
@@ -175,3 +301,25 @@ if st.button("Analyser et Vérifier"):
         poem_lines = input_text.split('\n')
         translated_poem = translate_poem(poem_lines, language.lower()[:2], target_lang.lower()[:2])
         st.text_area("Poème traduit :", "\n".join(translated_poem), height=200)
+
+# Ajout de la fonctionnalité de récitation vocale
+st.subheader("Récitation Vocale")
+if st.button("Réciter un poème"):
+    # Transcrire l'audio
+    transcribed_text = transcribe_audio()
+
+    st.subheader("Texte Transcrit")
+    if "Erreur" in transcribed_text:
+        st.error(transcribed_text)
+    else:
+        st.success(transcribed_text)
+
+        # Comparer avec les poèmes connus
+        st.subheader("Comparaison avec des Poèmes Connus")
+        matches = compare_transcription_with_poems(transcribed_text, poems)
+
+        if matches:
+            for poem, similarity in matches:
+                st.info(f"Correspondance trouvée ({similarity * 100:.2f}% de similarité) :\n{poem}")
+        else:
+            st.warning("Aucune correspondance trouvée.")

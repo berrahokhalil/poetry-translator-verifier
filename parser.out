@@ -1,1 +1,49 @@
 Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    Les
+    de
+    des
+    l'automne
+    longs
+    sanglots
+    violons
+
+Grammar
+
+Rule 0     S' -> poem
+Rule 1     poem -> line
+Rule 2     poem -> line NEWLINE poem
+Rule 3     line -> WORD
+Rule 4     line -> WORD COMMA line
+Rule 5     line -> WORD DOT
+Rule 6     line -> WORD EXCLAMATION
+Rule 7     line -> WORD QUESTION
+Rule 8     line -> WORD QUOTE line
+Rule 9     line -> QUOTE line QUOTE
+Rule 10    line -> line WORD
+
+Terminals, with rules where they appear
+
+Les                  : 
+de                   : 
+des                  : 
+error                : 
+l'automne            : 
+longs                : 
+sanglots             : 
+violons              : 
+
+Nonterminals, with rules where they appear
+
+COMMA                : 4
+DOT                  : 5
+EXCLAMATION          : 6
+NEWLINE              : 2
+QUESTION             : 7
+QUOTE                : 8 9 9
+WORD                 : 3 4 5 6 7 8 10
+line                 : 1 2 4 8 9 10
+poem                 : 2 0
+
