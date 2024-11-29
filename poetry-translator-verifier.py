@@ -3,6 +3,7 @@ from deep_translator import GoogleTranslator
 import ply.lex as lex
 import ply.yacc as yacc
 # Ceci est un commentaire pour tester
+#sir ra ghandrbk
 
 
 # ======================================
