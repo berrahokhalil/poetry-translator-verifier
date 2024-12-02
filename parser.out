@@ -1,15 +1,5 @@
 Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
-Unused terminals:
-
-    Les
-    de
-    des
-    l'automne
-    longs
-    sanglots
-    violons
-
 Grammar
 
 Rule 0     S' -> poem
@@ -26,17 +16,6 @@ Rule 10    line -> line WORD
 
 Terminals, with rules where they appear
 
-Les                  : 
-de                   : 
-des                  : 
-error                : 
-l'automne            : 
-longs                : 
-sanglots             : 
-violons              : 
-
-Nonterminals, with rules where they appear
-
 COMMA                : 4
 DOT                  : 5
 EXCLAMATION          : 6
@@ -44,6 +23,241 @@ NEWLINE              : 2
 QUESTION             : 7
 QUOTE                : 8 9 9
 WORD                 : 3 4 5 6 7 8 10
+error                : 
+
+Nonterminals, with rules where they appear
+
 line                 : 1 2 4 8 9 10
 poem                 : 2 0
 
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . poem
+    (1) poem -> . line
+    (2) poem -> . line NEWLINE poem
+    (3) line -> . WORD
+    (4) line -> . WORD COMMA line
+    (5) line -> . WORD DOT
+    (6) line -> . WORD EXCLAMATION
+    (7) line -> . WORD QUESTION
+    (8) line -> . WORD QUOTE line
+    (9) line -> . QUOTE line QUOTE
+    (10) line -> . line WORD
+
+    WORD            shift and go to state 3
+    QUOTE           shift and go to state 4
+
+    poem                           shift and go to state 1
+    line                           shift and go to state 2
+
+state 1
+
+    (0) S' -> poem .
+
+
+
+state 2
+
+    (1) poem -> line .
+    (2) poem -> line . NEWLINE poem
+    (10) line -> line . WORD
+
+    $end            reduce using rule 1 (poem -> line .)
+    NEWLINE         shift and go to state 5
+    WORD            shift and go to state 6
+
+
+state 3
+
+    (3) line -> WORD .
+    (4) line -> WORD . COMMA line
+    (5) line -> WORD . DOT
+    (6) line -> WORD . EXCLAMATION
+    (7) line -> WORD . QUESTION
+    (8) line -> WORD . QUOTE line
+
+  ! shift/reduce conflict for QUOTE resolved as shift
+    NEWLINE         reduce using rule 3 (line -> WORD .)
+    WORD            reduce using rule 3 (line -> WORD .)
+    $end            reduce using rule 3 (line -> WORD .)
+    COMMA           shift and go to state 7
+    DOT             shift and go to state 8
+    EXCLAMATION     shift and go to state 9
+    QUESTION        shift and go to state 10
+    QUOTE           shift and go to state 11
+
+  ! QUOTE           [ reduce using rule 3 (line -> WORD .) ]
+
+
+state 4
+
+    (9) line -> QUOTE . line QUOTE
+    (3) line -> . WORD
+    (4) line -> . WORD COMMA line
+    (5) line -> . WORD DOT
+    (6) line -> . WORD EXCLAMATION
+    (7) line -> . WORD QUESTION
+    (8) line -> . WORD QUOTE line
+    (9) line -> . QUOTE line QUOTE
+    (10) line -> . line WORD
+
+    WORD            shift and go to state 3
+    QUOTE           shift and go to state 4
+
+    line                           shift and go to state 12
+
+state 5
+
+    (2) poem -> line NEWLINE . poem
+    (1) poem -> . line
+    (2) poem -> . line NEWLINE poem
+    (3) line -> . WORD
+    (4) line -> . WORD COMMA line
+    (5) line -> . WORD DOT
+    (6) line -> . WORD EXCLAMATION
+    (7) line -> . WORD QUESTION
+    (8) line -> . WORD QUOTE line
+    (9) line -> . QUOTE line QUOTE
+    (10) line -> . line WORD
+
+    WORD            shift and go to state 3
+    QUOTE           shift and go to state 4
+
+    line                           shift and go to state 2
+    poem                           shift and go to state 13
+
+state 6
+
+    (10) line -> line WORD .
+
+    NEWLINE         reduce using rule 10 (line -> line WORD .)
+    WORD            reduce using rule 10 (line -> line WORD .)
+    $end            reduce using rule 10 (line -> line WORD .)
+    QUOTE           reduce using rule 10 (line -> line WORD .)
+
+
+state 7
+
+    (4) line -> WORD COMMA . line
+    (3) line -> . WORD
+    (4) line -> . WORD COMMA line
+    (5) line -> . WORD DOT
+    (6) line -> . WORD EXCLAMATION
+    (7) line -> . WORD QUESTION
+    (8) line -> . WORD QUOTE line
+    (9) line -> . QUOTE line QUOTE
+    (10) line -> . line WORD
+
+    WORD            shift and go to state 3
+    QUOTE           shift and go to state 4
+
+    line                           shift and go to state 14
+
+state 8
+
+    (5) line -> WORD DOT .
+
+    NEWLINE         reduce using rule 5 (line -> WORD DOT .)
+    WORD            reduce using rule 5 (line -> WORD DOT .)
+    $end            reduce using rule 5 (line -> WORD DOT .)
+    QUOTE           reduce using rule 5 (line -> WORD DOT .)
+
+
+state 9
+
+    (6) line -> WORD EXCLAMATION .
+
+    NEWLINE         reduce using rule 6 (line -> WORD EXCLAMATION .)
+    WORD            reduce using rule 6 (line -> WORD EXCLAMATION .)
+    $end            reduce using rule 6 (line -> WORD EXCLAMATION .)
+    QUOTE           reduce using rule 6 (line -> WORD EXCLAMATION .)
+
+
+state 10
+
+    (7) line -> WORD QUESTION .
+
+    NEWLINE         reduce using rule 7 (line -> WORD QUESTION .)
+    WORD            reduce using rule 7 (line -> WORD QUESTION .)
+    $end            reduce using rule 7 (line -> WORD QUESTION .)
+    QUOTE           reduce using rule 7 (line -> WORD QUESTION .)
+
+
+state 11
+
+    (8) line -> WORD QUOTE . line
+    (3) line -> . WORD
+    (4) line -> . WORD COMMA line
+    (5) line -> . WORD DOT
+    (6) line -> . WORD EXCLAMATION
+    (7) line -> . WORD QUESTION
+    (8) line -> . WORD QUOTE line
+    (9) line -> . QUOTE line QUOTE
+    (10) line -> . line WORD
+
+    WORD            shift and go to state 3
+    QUOTE           shift and go to state 4
+
+    line                           shift and go to state 15
+
+state 12
+
+    (9) line -> QUOTE line . QUOTE
+    (10) line -> line . WORD
+
+    QUOTE           shift and go to state 16
+    WORD            shift and go to state 6
+
+
+state 13
+
+    (2) poem -> line NEWLINE poem .
+
+    $end            reduce using rule 2 (poem -> line NEWLINE poem .)
+
+
+state 14
+
+    (4) line -> WORD COMMA line .
+    (10) line -> line . WORD
+
+  ! shift/reduce conflict for WORD resolved as shift
+    NEWLINE         reduce using rule 4 (line -> WORD COMMA line .)
+    $end            reduce using rule 4 (line -> WORD COMMA line .)
+    QUOTE           reduce using rule 4 (line -> WORD COMMA line .)
+    WORD            shift and go to state 6
+
+  ! WORD            [ reduce using rule 4 (line -> WORD COMMA line .) ]
+
+
+state 15
+
+    (8) line -> WORD QUOTE line .
+    (10) line -> line . WORD
+
+  ! shift/reduce conflict for WORD resolved as shift
+    NEWLINE         reduce using rule 8 (line -> WORD QUOTE line .)
+    $end            reduce using rule 8 (line -> WORD QUOTE line .)
+    QUOTE           reduce using rule 8 (line -> WORD QUOTE line .)
+    WORD            shift and go to state 6
+
+  ! WORD            [ reduce using rule 8 (line -> WORD QUOTE line .) ]
+
+
+state 16
+
+    (9) line -> QUOTE line QUOTE .
+
+    NEWLINE         reduce using rule 9 (line -> QUOTE line QUOTE .)
+    WORD            reduce using rule 9 (line -> QUOTE line QUOTE .)
+    $end            reduce using rule 9 (line -> QUOTE line QUOTE .)
+    QUOTE           reduce using rule 9 (line -> QUOTE line QUOTE .)
+
+WARNING: 
+WARNING: Conflicts:
+WARNING: 
+WARNING: shift/reduce conflict for QUOTE in state 3 resolved as shift
+WARNING: shift/reduce conflict for WORD in state 14 resolved as shift
+WARNING: shift/reduce conflict for WORD in state 15 resolved as shift

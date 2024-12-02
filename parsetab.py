@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'COMMA DOT EXCLAMATION NEWLINE QUESTION WORDpoem : line NEWLINE poem\n            | lineline : phrase DOT\n            | phrase COMMA phrase\n            | phrase EXCLAMATION\n            | phrase QUESTIONphrase : WORD\n              | phrase WORD'
+_lr_signature = 'COMMA DOT EXCLAMATION NEWLINE QUESTION QUOTE WORDpoem : line\n            | line NEWLINE poemline : WORD\n            | WORD COMMA line\n            | WORD DOT\n            | WORD EXCLAMATION\n            | WORD QUESTION\n            | WORD QUOTE line\n            | QUOTE line QUOTE\n            | line WORD'
     
-_lr_action_items = {'WORD':([0,3,4,5,7,10,12,],[4,10,-7,4,4,-8,10,]),'$end':([1,2,4,6,8,9,10,11,12,],[0,-2,-7,-3,-5,-6,-8,-1,-4,]),'NEWLINE':([2,4,6,8,9,10,12,],[5,-7,-3,-5,-6,-8,-4,]),'DOT':([3,4,10,],[6,-7,-8,]),'COMMA':([3,4,10,],[7,-7,-8,]),'EXCLAMATION':([3,4,10,],[8,-7,-8,]),'QUESTION':([3,4,10,],[9,-7,-8,]),}
+_lr_action_items = {'WORD':([0,2,3,4,5,6,7,8,9,10,11,12,14,15,16,],[3,6,-3,3,3,-10,3,-5,-6,-7,3,6,6,6,-9,]),'QUOTE':([0,3,4,5,6,7,8,9,10,11,12,14,15,16,],[4,11,4,4,-10,4,-5,-6,-7,4,16,-4,-8,-9,]),'$end':([1,2,3,6,8,9,10,13,14,15,16,],[0,-1,-3,-10,-5,-6,-7,-2,-4,-8,-9,]),'NEWLINE':([2,3,6,8,9,10,14,15,16,],[5,-3,-10,-5,-6,-7,-4,-8,-9,]),'COMMA':([3,],[7,]),'DOT':([3,],[8,]),'EXCLAMATION':([3,],[9,]),'QUESTION':([3,],[10,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'poem':([0,5,],[1,11,]),'line':([0,5,],[2,2,]),'phrase':([0,5,7,],[3,3,12,]),}
+_lr_goto_items = {'poem':([0,5,],[1,13,]),'line':([0,4,5,7,11,],[2,12,2,14,15,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,12 +27,14 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> poem","S'",1,None,None,None),
-  ('poem -> line NEWLINE poem','poem',3,'p_poem','poetry-translator-verifier.py',83),
-  ('poem -> line','poem',1,'p_poem','poetry-translator-verifier.py',84),
-  ('line -> phrase DOT','line',2,'p_line','poetry-translator-verifier.py',88),
-  ('line -> phrase COMMA phrase','line',3,'p_line','poetry-translator-verifier.py',89),
-  ('line -> phrase EXCLAMATION','line',2,'p_line','poetry-translator-verifier.py',90),
-  ('line -> phrase QUESTION','line',2,'p_line','poetry-translator-verifier.py',91),
-  ('phrase -> WORD','phrase',1,'p_phrase','poetry-translator-verifier.py',95),
-  ('phrase -> phrase WORD','phrase',2,'p_phrase','poetry-translator-verifier.py',96),
+  ('poem -> line','poem',1,'p_poem','poetry-translator-verifier.py',112),
+  ('poem -> line NEWLINE poem','poem',3,'p_poem','poetry-translator-verifier.py',113),
+  ('line -> WORD','line',1,'p_line','poetry-translator-verifier.py',117),
+  ('line -> WORD COMMA line','line',3,'p_line','poetry-translator-verifier.py',118),
+  ('line -> WORD DOT','line',2,'p_line','poetry-translator-verifier.py',119),
+  ('line -> WORD EXCLAMATION','line',2,'p_line','poetry-translator-verifier.py',120),
+  ('line -> WORD QUESTION','line',2,'p_line','poetry-translator-verifier.py',121),
+  ('line -> WORD QUOTE line','line',3,'p_line','poetry-translator-verifier.py',122),
+  ('line -> QUOTE line QUOTE','line',3,'p_line','poetry-translator-verifier.py',123),
+  ('line -> line WORD','line',2,'p_line','poetry-translator-verifier.py',124),
 ]

@@ -4,6 +4,13 @@ import ply.lex as lex
 import ply.yacc as yacc
 import speech_recognition as sr
 import difflib
+import re
+import openai
+import requests
+from PIL import Image
+from io import BytesIO
+
+openai.api_key = "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"
 
 
 
@@ -259,67 +266,236 @@ def compare_transcription_with_poems(transcribed_text, known_poems):
 
 
 # ======================================
+# Analyse stylistique
+# ======================================
+
+def count_syllables(line):
+    """
+    Compte le nombre de syllabes dans une ligne.
+    """
+    vowels = "aeiouyAEIOUYéèêëàâîïôùûç"
+    # Identifier les groupes de voyelles
+    syllable_groups = re.findall(r"[aeiouyAEIOUYéèêëàâîïôùûç]+", line)
+    return len(syllable_groups)
+
+
+
+def detect_rhyme_scheme(lines):
+    """
+    Analyse le schéma des rimes d'un poème.
+    """
+    rhymes = {}
+    scheme = []
+    rhyme_index = 0
+
+    for line in lines:
+        if line.strip():
+            # Extraire le dernier mot
+            last_word = line.strip().split()[-1].lower()
+            # Conserver une portion significative des sons de rime
+            rhyme = re.sub(r"[^a-zA-Zéèêëàâîïôùûç]", "", last_word[-4:])  # Ajusté à 4 lettres
+
+            if rhyme not in rhymes:
+                rhyme_index += 1
+                rhymes[rhyme] = chr(64 + rhyme_index)  # A, B, C...
+            scheme.append(rhymes[rhyme])
+        else:
+            scheme.append(" ")  # Ligne vide
+
+    return "".join(scheme)
+
+
+
+def detect_figures_of_speech(line):
+    """
+    Détecte des figures de style dans une ligne.
+    """
+    figures = []
+
+    # Allitération : répétition des sons
+    if re.search(r"(.)\1{2,}", line):
+        figures.append("Allitération")
+
+    # Métaphore ou comparaison : mots-clés potentiels
+    if "comme" in line or "tel" in line:
+        figures.append("Comparaison")
+
+    # Anaphore : répétition de début
+    words = line.split()
+    if len(words) > 1 and words[0] == words[1]:
+        figures.append("Anaphore")
+
+    return figures
+
+
+def analyze_style(poem):
+    """
+    Analyse stylistique d'un poème.
+    """
+    lines = poem.strip().split("\n")
+    style_report = {"syllables_per_line": [], "rhyme_scheme": "", "figures": []}
+
+    # Analyse ligne par ligne
+    for line in lines:
+        syllable_count = count_syllables(line)
+        style_report["syllables_per_line"].append(syllable_count)
+        figures = detect_figures_of_speech(line)
+        style_report["figures"].extend(figures)
+
+    # Schéma de rimes
+    style_report["rhyme_scheme"] = detect_rhyme_scheme(lines)
+
+    return style_report
+
+def generate_image_description(poem):
+    """
+    Génère une description textuelle pour l'image à partir d'un poème.
+    """
+    lines = poem.strip().split("\n")
+    summary = " ".join(lines[:2])  # Utilise les deux premières lignes pour résumer
+    description = f"An artistic representation of the following poem: {summary}"
+    return description
+
+
+def generate_image_from_poem(poem):
+    """
+    Utilise OpenAI DALL·E pour générer une image basée sur un poème.
+    """
+    description = generate_image_description(poem)
+    
+    try:
+        # Appel à l'API OpenAI pour créer une image
+        response = openai.Image.create(
+            prompt=description,
+            n=1,  # Une seule image
+            size="512x512"  # Taille de l'image
+        )
+        
+        # Obtenez l'URL de l'image générée
+        image_url = response['data'][0]['url']
+        
+        # Télécharger l'image
+        image_response = requests.get(image_url)
+        img = Image.open(BytesIO(image_response.content))
+        
+        return img
+    
+    except Exception as e:
+        print(f"Erreur lors de la génération de l'image : {e}")
+        return None
+
+
+# ======================================
 # Application Streamlit
 # ======================================
 
-st.title("Poetry Translator and Verifier")
-language = st.selectbox("Langue du poème :", ["Français", "Arabe", "Anglais"])
-target_lang = st.selectbox("Traduire vers :", ["Français", "Arabe", "Anglais"])
-poems = {"Français": french_poems, "Arabe": arabic_poems, "Anglais": english_poems}[language]
-input_text = st.text_area("Écrivez ou collez votre texte ici :", height=200)
 
-if st.button("Analyser et Vérifier"):
-    if not input_text.strip():
-        st.error("Veuillez entrer du texte avant de continuer.")
-    else:
-        st.subheader("Analyse Lexicale")
-        tokens, full_matches, partial_matches, word_matches = analyze_lexical(input_text, poems)
-        st.write(f"Tokens : {tokens}")
+def home_page():
+    st.title("Bienvenue sur Lyrica Translate 🎼🌐")
+    st.markdown("""
+    🎵 **Compilateur-Traducteur Multilingue** 🌍  
+    Cette application révolutionnaire analyse 🕵️‍♂️, traduit 🌐, et vérifie ✅ des poèmes 🎶 dans les langues **français 🇫🇷, arabe 🇸🇦, et anglais 🇬🇧**.  
+    Elle intègre des outils avancés 📊 comme Lex & Yacc pour une analyse lexicale et syntaxique précise, et la reconnaissance vocale 🎙️ pour une expérience interactive futuriste.  
 
-        if full_matches:
-            st.success(f"Correspondance complète trouvée dans : {full_matches}")
-        if partial_matches:
-            st.info(f"Correspondance partielle trouvée dans : {partial_matches}")
-        if word_matches:
-            st.warning("Mots trouvés :")
-            for word, occurrences in word_matches.items():
-                st.write(f"**{word}** trouvé dans : {occurrences}")
+    🖋️ ✒️ **Les fonctionnalités incluent :**  
+    - Analyse syntaxique & sémantique 🔍  
+    - Détection d'erreurs linguistiques ⚠️  
+    - Traduction fluide et fidèle entre langues 🌟  
+    - Interface utilisateur innovante et conviviale 🎨  
+    - Reconnaissance vocale pour une saisie rapide 🎤  
 
-        st.subheader("Analyse Syntaxique")
-        syntax_result = analyze_syntax(input_text)
-        st.write(syntax_result)
+    Transformez chaque mot en chef-d'œuvre 💎, que vous soyez poète, artiste ou curieux !
+    """)
 
-        st.subheader("Analyse Sémantique")
-        semantic_results = analyze_semantics(input_text)
-        if semantic_results:
-            for obs in semantic_results:
-                st.warning(obs)
+
+def compilateur_page():
+    st.title("Compilateur de Lyrica Translate 🎼🌐")
+    # Mapping des langues
+    language_mapping = {
+        "Français": "fr",
+        "Arabe": "ar",
+        "Anglais": "en"
+    }
+    language = st.selectbox("Langue du poème :", ["Français", "Arabe", "Anglais"])
+    target_lang = st.selectbox("Traduire vers :", ["Français", "Arabe", "Anglais"])
+    source_lang_code = language_mapping.get(language)
+    target_lang_code = language_mapping.get(target_lang)
+    poems = {"Français": french_poems, "Arabe": arabic_poems, "Anglais": english_poems}[language]
+    input_text = st.text_area("Écrivez ou collez votre texte ici :", height=200)
+
+    if st.button("Analyser et Vérifier"):
+        if not input_text.strip():
+            st.error("Veuillez entrer du texte avant de continuer.")
         else:
-            st.success("Aucune anomalie sémantique détectée.")
+            st.subheader("Analyse Lexicale")
+            tokens, full_matches, partial_matches, word_matches = analyze_lexical(input_text, poems)
+            st.write(f"Tokens : {tokens}")
 
-        st.subheader("Traduction")
-        poem_lines = input_text.split('\n')
-        translated_poem = translate_poem(poem_lines, language.lower()[:2], target_lang.lower()[:2])
-        st.text_area("Poème traduit :", "\n".join(translated_poem), height=200)
+            if full_matches:
+                st.success(f"Correspondance complète trouvée dans : {full_matches}")
+            if partial_matches:
+                st.info(f"Correspondance partielle trouvée dans : {partial_matches}")
+            if word_matches:
+                st.warning("Mots trouvés :")
+                for word, occurrences in word_matches.items():
+                    st.write(f"**{word}** trouvé dans : {occurrences}")
 
-# Ajout de la fonctionnalité de récitation vocale
-st.subheader("Récitation Vocale")
-if st.button("Réciter un poème"):
-    # Transcrire l'audio
-    transcribed_text = transcribe_audio()
+            st.subheader("Analyse Syntaxique")
+            syntax_result = analyze_syntax(input_text)
+            st.write(syntax_result)
 
-    st.subheader("Texte Transcrit")
-    if "Erreur" in transcribed_text:
-        st.error(transcribed_text)
-    else:
-        st.success(transcribed_text)
+            st.subheader("Analyse Sémantique")
+            semantic_results = analyze_semantics(input_text)
+            if semantic_results:
+                for obs in semantic_results:
+                    st.warning(obs)
+            else:
+                st.success("Aucune anomalie sémantique détectée.")
 
-        # Comparer avec les poèmes connus
-        st.subheader("Comparaison avec des Poèmes Connus")
-        matches = compare_transcription_with_poems(transcribed_text, poems)
+            st.subheader("Analyse Stylistique")
+            style_report = analyze_style(input_text)
+            st.write("**Syllabes par ligne :**", style_report["syllables_per_line"])
+            st.write("**Schéma de rimes :**", style_report["rhyme_scheme"])
+            st.write("**Figures de style détectées :**", style_report["figures"])
 
-        if matches:
-            for poem, similarity in matches:
-                st.info(f"Correspondance trouvée ({similarity * 100:.2f}% de similarité) :\n{poem}")
+            st.subheader("Image générée")
+            img = generate_image_from_poem(input_text)
+            if img:
+                st.image(img, caption="Image générée pour le poème")
+            else:
+                st.error("Une erreur s'est produite lors de la génération de l'image.")
+
+            st.subheader("Traduction")
+            poem_lines = input_text.split('\n')
+            translated_poem = translate_poem(poem_lines, source_lang_code, target_lang_code)
+            st.text_area("Poème traduit :", "\n".join(translated_poem), height=200)
+
+    # Ajout de la fonctionnalité de récitation vocale
+    st.subheader("Récitation Vocale")
+    if st.button("Réciter un poème"):
+        # Transcrire l'audio
+        transcribed_text = transcribe_audio()
+
+        st.subheader("Texte Transcrit")
+        if "Erreur" in transcribed_text:
+            st.error(transcribed_text)
         else:
-            st.warning("Aucune correspondance trouvée.")
+            st.success(transcribed_text)
+
+            # Comparer avec les poèmes connus
+            st.subheader("Comparaison avec des Poèmes Connus")
+            matches = compare_transcription_with_poems(transcribed_text, poems)
+
+            if matches:
+                for poem, similarity in matches:
+                    st.info(f"Correspondance trouvée ({similarity * 100:.2f}% de similarité) :\n{poem}")
+            else:
+                st.warning("Aucune correspondance trouvée.")
+
+
+page = st.sidebar.radio("Navigation", ["Home", "Compilateur"])
+
+if page == "Home":
+    home_page()
+elif page == "Compilateur":
+    compilateur_page()
