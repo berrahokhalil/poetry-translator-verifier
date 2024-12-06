@@ -9,10 +9,12 @@ import openai
 import requests
 from PIL import Image
 from io import BytesIO
+import os
 
 openai.api_key = "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"
 
 
+extraction_path = r"C:\poetry-translator-verifier\ImagesPoems"  # Use the raw string format for Windows paths.
 
 
 # ======================================
@@ -385,6 +387,62 @@ def generate_image_from_poem(poem):
         return None
 
 
+def load_images_for_poem_by_language(poem_number, language_code):
+    """
+    Charge les images pour un poème spécifique et une langue donnée depuis la structure des répertoires.
+    """
+    # Mapper les langues aux dossiers
+    language_mapping = {
+        "ar": "ImagesPoems/Poems_ar",
+        "fr": "ImagesPoems/Poems_fr",
+        "en": "ImagesPoems/Poems_en"
+    }
+
+    folder_suffix = language_mapping.get(language_code, "")
+    folder_path = os.path.join(folder_suffix, f"Poem{poem_number}")
+
+    if not os.path.exists(folder_path):
+        st.error(f"Le dossier {folder_path} n'existe pas.")
+        return []
+
+    # Diagnostic : liste les fichiers dans le répertoire
+    st.write(f"Fichiers trouvés dans {folder_path} :")
+    st.write(os.listdir(folder_path))
+
+    # Charger les images disponibles dans le dossier
+    images = [
+        os.path.join(folder_path, filename)
+        for filename in sorted(os.listdir(folder_path))
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
+    ]
+    return images
+
+
+
+def show_image_for_poem_by_language(poem_number, language_code):
+    """
+    Affiche une image pour un poème spécifique et une langue donnée avec une logique de rotation.
+    """
+    if f"poem_{language_code}_{poem_number}_index" not in st.session_state:
+        st.session_state[f"poem_{language_code}_{poem_number}_index"] = 0
+
+    images = load_images_for_poem_by_language(poem_number, language_code)
+    if not images:
+        st.error(f"Aucune image trouvée pour le Poem{poem_number} dans la langue {language_code}.")
+        return
+
+    # Afficher l'image correspondante
+    index = st.session_state[f"poem_{language_code}_{poem_number}_index"]
+    image_path = images[index % len(images)]  # Rotation des images
+    image = Image.open(image_path)
+    st.image(image, caption=f"Image pour Poem{poem_number} ({language_code})", use_column_width=True)
+
+    # Incrémenter l'index pour la prochaine exécution
+    st.session_state[f"poem_{language_code}_{poem_number}_index"] += 1
+
+
+
+
 # ======================================
 # Application Streamlit
 # ======================================
@@ -491,6 +549,26 @@ def compilateur_page():
                     st.info(f"Correspondance trouvée ({similarity * 100:.2f}% de similarité) :\n{poem}")
             else:
                 st.warning("Aucune correspondance trouvée.")
+
+
+
+    if st.button("Afficher une Image pour le Poème"):
+       # Identifier l'index du poème correspondant
+       matched_poem_index = None
+       for i, poem in enumerate(poems):
+           if input_text.strip() == poem.strip():
+               matched_poem_index = i + 1
+               break
+
+       if matched_poem_index:
+           st.success(f"Poème reconnu : Poem{matched_poem_index}")
+           show_image_for_poem_by_language(matched_poem_index, source_lang_code)
+       else:
+           st.warning("Aucun poème correspondant trouvé.")
+
+
+
+
 
 
 page = st.sidebar.radio("Navigation", ["Home", "Compilateur"])
