@@ -14,8 +14,6 @@ import os
 openai.api_key = "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"
 
 
-extraction_path = r"C:\poetry-translator-verifier\ImagesPoems"  # Use the raw string format for Windows paths.
-
 
 # ======================================
 # Données des poèmes
@@ -133,6 +131,134 @@ def p_line(p):
             | line WORD'''
     pass
 
+def p_french_poem_1(p):
+    '''french_poem : WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Les sanglots longs des violons de l’automne.'"
+
+def p_french_poem_2(p):
+    '''french_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD COLON WORD DOT'''
+    p[0] = "Analyse réussie : 'Sur mes cahiers d’écolier... J’écris ton nom : Liberté.'"
+
+def p_french_poem_3(p):
+    '''french_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Sous le pont Mirabeau coule la Seine... après la peine.'"
+
+def p_french_poem_4(p):
+    '''french_poem : WORD COMMA WORD WORD COMMA WORD WORD WORD WORD WORD WORD WORD COMMA WORD WORD DOT WORD DASH WORD COMMA WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Demain, dès l’aube... j’irai par la montagne.'"
+
+def p_french_poem_5(p):
+    '''french_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD COMMA WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Je fais souvent ce rêve... et qui m’aime.'"
+
+def p_french_poem_6(p):
+    '''french_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD QUESTION'''
+    p[0] = "Analyse réussie : 'Il pleure dans mon cœur... Qui pénètre mon cœur ?'"
+
+def p_french_poem_7(p):
+    '''french_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Par les soirs bleus... fouler l’herbe menue.'"
+
+def p_french_poem_8(p):
+    '''french_poem : WORD WORD COMMA WORD WORD COMMA WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Heureux qui, comme Ulysse... conquit la toison.'"
+
+def p_french_poem_9(p):
+    '''french_poem : WORD WORD WORD WORD WORD EXCLAMATION DASH WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Un éclair… puis la nuit !... renaître.'"
+
+def p_french_poem_10(p):
+    '''french_poem : WORD COMMA WORD WORD WORD COMMA WORD WORD WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Souvent, pour s’amuser... vastes oiseaux des mers.'"
+
+
+
+
+def p_english_poem_1(p):
+    '''english_poem : WORD WORD WORD WORD WORD WORD COMMA WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Some say the world will end in fire, Some say in ice.'"
+
+def p_english_poem_2(p):
+    '''english_poem : WORD WORD WORD WORD WORD DASH WORD WORD WORD WORD WORD DASH WORD WORD WORD WORD WORD WORD WORD DASH WORD WORD'''
+    p[0] = "Analyse réussie : 'Hope is the thing with feathers - That perches in the soul - And never stops - at all.'"
+
+def p_english_poem_3(p):
+    '''english_poem : WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'She walks in beauty, like the night Of cloudless climes and starry skies.'"
+
+def p_english_poem_4(p):
+    '''english_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'All that we see or seem Is but a dream within a dream.'"
+
+def p_english_poem_5(p):
+    '''english_poem : WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Nature’s first green is gold, Her hardest hue to hold.'"
+
+def p_english_poem_6(p):
+    '''english_poem : WORD WORD COMMA WORD WORD COMMA WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Tyger Tyger, burning bright, In the forests of the night.'"
+
+def p_english_poem_7(p):
+    '''english_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD SEMICOLON WORD WORD WORD WORD DOT WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Do not stand at my grave and weep; I am not there. I do not sleep.'"
+
+def p_english_poem_8(p):
+    '''english_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD COLON WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'I met a traveller from an antique land Who said: Two vast and trunkless legs of stone Stand in the desert.'"
+
+def p_english_poem_9(p):
+    '''english_poem : WORD WORD WORD WORD COMMA WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'There is another sky, Ever serene and fair, And there is another sunshine.'"
+
+def p_english_poem_10(p):
+    '''english_poem : WORD WORD WORD WORD WORD COMMA WORD WORD DASH WORD DASH WORD WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'Two roads diverged in a wood, and I— I took the one less traveled by, And that has made all the difference.'"
+
+
+
+
+def p_arabic_poem_1(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'وأنتَ بعيدٌ عن عينيَّ أراكَ قريبا من قلبي كأنك نبضي الذي يتسللُ في شراييني.'"
+
+def p_arabic_poem_2(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'إذا المرءُ لم يُدنَسْ مِنَ اللؤمِ عِرضُهُ فكلُّ رِداءٍ يَرتديهِ جميلُ.'"
+
+def p_arabic_poem_3(p):
+    '''arabic_poem : WORD COLON WORD WORD WORD WORD WORD COLON WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'قال: السماء كئيبة وتجهما قلت: ابتسم يكفي التجهم في السما.'"
+
+def p_arabic_poem_4(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'تعالَ لنسبحَ في ضوء القمر، ونطيرَ في فضاءِ الأحلام.'"
+
+def p_arabic_poem_5(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'عيناكِ غابتا نخيلٍ ساعةَ السحَرْ أو شُرفتان راح ينأى عنهما القمرْ.'"
+
+def p_arabic_poem_6(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD COMMA WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'لا تقف على الأطلال ولا تسأل عن الماضي، فالحياة تمضي وما ذهب، لا يعود.'"
+
+def p_arabic_poem_7(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD QUESTION'''
+    p[0] = "Analyse réussie : 'أراكَ عصيَّ الدمعِ شيمتُكَ الصبرُ أما للهوى نهيٌ عليكَ ولا أمرُ؟'"
+
+def p_arabic_poem_8(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD COMMA WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'غريبٌ أنا في هذا العالم، غريبٌ كنجمةٍ بعيدة تضيء ولا تنطفئ.'"
+
+def p_arabic_poem_9(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'إذا سبَّني نذلٌ تزايدتُ رفعةً وما العيبُ إلّا أن أكونَ مُسابِبَا.'"
+
+def p_arabic_poem_10(p):
+    '''arabic_poem : WORD WORD WORD WORD WORD COMMA WORD WORD COMMA WORD WORD WORD WORD DOT'''
+    p[0] = "Analyse réussie : 'أحبكِ أكثر من كلامي، من صمتي، ومن نظراتي العابرة.'"
+
+
+
 
 def p_error(p):
     """
@@ -142,7 +268,40 @@ def p_error(p):
         raise Exception(f"Erreur syntaxique au token : {p.value}")
     else:
         raise Exception("Erreur syntaxique : fin de fichier inattendue.")
-import re
+    
+
+    
+def p_error_french(p):
+    """
+    Gestion des erreurs syntaxiques pour les poèmes français.
+    """
+    if p:
+        raise Exception(f"Erreur syntaxique au token : {p.value}")
+    else:
+        raise Exception("Erreur syntaxique : fin de fichier inattendue.")
+    
+
+    
+def p_error_english(p):
+    """
+    Gestion des erreurs syntaxiques pour les poèmes anglais.
+    """
+    if p:
+        raise Exception(f"Erreur syntaxique au token : {p.value}")
+    else:
+        raise Exception("Erreur syntaxique : fin de fichier inattendue.")
+    
+
+def p_error_arabic(p):
+    """
+    Gestion des erreurs syntaxiques pour les poèmes arabes.
+    """
+    if p:
+        raise Exception(f"Erreur syntaxique au token : {p.value}")
+    else:
+        raise Exception("Erreur syntaxique : fin de fichier inattendue.")
+
+
 
 def analyze_semantics(input_text):
     """
@@ -208,6 +367,22 @@ def analyze_syntax(input_text):
     except Exception as e:
         # Retourne un message d'erreur clair
         return f"Erreur syntaxique : {e}"
+    
+def analyze_french_poem(input_text):
+    """
+    Analyse syntaxique spécifique pour les poèmes français.
+    """
+    import ply.yacc as yacc
+
+    # Crée un parser spécifique basé sur les règles des poèmes français
+    parser = yacc.yacc(module=__import__(__name__), start="french_poem")
+
+    try:
+        parser.parse(input_text)
+        return "Poème en français analysé avec succès."
+    except Exception as e:
+        return f"Erreur d'analyse syntaxique : {e}"
+
 
 
 
@@ -393,29 +568,26 @@ def load_images_for_poem_by_language(poem_number, language_code):
     """
     # Mapper les langues aux dossiers
     language_mapping = {
-        "ar": "ImagesPoems/Poems_ar",
-        "fr": "ImagesPoems/Poems_fr",
-        "en": "ImagesPoems/Poems_en"
+       "ar": r"C:\ImagesPoems\Poems_ar",
+       "fr": r"C:\ImagesPoems\Poems_fr",
+       "en": r"C:\ImagesPoems\Poems_en"
     }
+
 
     folder_suffix = language_mapping.get(language_code, "")
     folder_path = os.path.join(folder_suffix, f"Poem{poem_number}")
 
     if not os.path.exists(folder_path):
-        st.error(f"Le dossier {folder_path} n'existe pas.")
-        return []
+        return []  # Retourner une liste vide si le dossier n'existe pas
 
-    # Diagnostic : liste les fichiers dans le répertoire
-    st.write(f"Fichiers trouvés dans {folder_path} :")
-    st.write(os.listdir(folder_path))
-
-    # Charger les images disponibles dans le dossier
+    # Charger les images disponibles dans le dossier sans afficher les fichiers
     images = [
         os.path.join(folder_path, filename)
         for filename in sorted(os.listdir(folder_path))
         if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
     ]
     return images
+
 
 
 
@@ -428,10 +600,10 @@ def show_image_for_poem_by_language(poem_number, language_code):
 
     images = load_images_for_poem_by_language(poem_number, language_code)
     if not images:
-        st.error(f"Aucune image trouvée pour le Poem{poem_number} dans la langue {language_code}.")
+        st.error(f"Aucune image trouvée pour Poem{poem_number} dans la langue {language_code}.")
         return
 
-    # Afficher l'image correspondante
+    # Afficher uniquement l'image correspondante
     index = st.session_state[f"poem_{language_code}_{poem_number}_index"]
     image_path = images[index % len(images)]  # Rotation des images
     image = Image.open(image_path)
@@ -439,6 +611,83 @@ def show_image_for_poem_by_language(poem_number, language_code):
 
     # Incrémenter l'index pour la prochaine exécution
     st.session_state[f"poem_{language_code}_{poem_number}_index"] += 1
+
+
+def detect_language(input_text):
+    """
+    Détecte la langue d'un poème saisi.
+    """
+    arabic_chars = re.compile(r'[\u0600-\u06FF]')
+    french_chars = re.compile(r'[àâçéèêëîïôûùüÿœ]')
+    english_chars = re.compile(r'[a-zA-Z]')
+
+    if arabic_chars.search(input_text):
+        return "ar"
+    elif french_chars.search(input_text):
+        return "fr"
+    elif english_chars.search(input_text):
+        return "en"
+    else:
+        return None
+
+
+def identify_poem(input_text, language):
+    """
+    Identifie le poème correspondant à l'entrée.
+    """
+    poems_dict = {"fr": french_poems, "ar": arabic_poems, "en": english_poems}
+    poems = poems_dict.get(language, [])
+    
+    for i, poem in enumerate(poems):
+        if difflib.SequenceMatcher(None, input_text.strip(), poem.strip()).ratio() > 0.8:
+            return i + 1, poem  # Retourne l'index et le poème correspondant
+    return None, None
+
+
+def detect_errors(input_text, reference_poem):
+    """
+    Détecte les erreurs (mots ou caractères manquants) dans le texte saisi par rapport au poème de référence.
+    """
+    errors = []
+    
+    input_words = input_text.strip().split()
+    reference_words = reference_poem.strip().split()
+    
+    # Vérification mot par mot
+    for i, word in enumerate(reference_words):
+        if i >= len(input_words) or input_words[i] != word:
+            previous_word = reference_words[i - 1] if i > 0 else None
+            next_word = reference_words[i + 1] if i < len(reference_words) - 1 else None
+            errors.append({
+                "type": "word",
+                "missing_word": word,
+                "position": i,
+                "before": previous_word,
+                "after": next_word
+            })
+    
+    # Vérification des caractères manquants pour les mots correspondants
+    for i, (input_word, ref_word) in enumerate(zip(input_words, reference_words)):
+        if input_word != ref_word:
+            for j, (input_char, ref_char) in enumerate(zip(input_word, ref_word)):
+                if input_char != ref_char:
+                    errors.append({
+                        "type": "character",
+                        "missing_character": ref_char,
+                        "word_position": i,
+                        "char_position": j
+                    })
+    
+    # Vérification du caractère final manquant
+    if reference_poem.endswith('.') and not input_text.endswith('.'):
+        errors.append({
+            "type": "character",
+            "missing_character": '.',
+            "word_position": len(reference_words) - 1,
+            "after_word": reference_words[-1]
+        })
+    
+    return errors
 
 
 
@@ -516,13 +765,6 @@ def compilateur_page():
             st.write("**Schéma de rimes :**", style_report["rhyme_scheme"])
             st.write("**Figures de style détectées :**", style_report["figures"])
 
-            st.subheader("Image générée")
-            img = generate_image_from_poem(input_text)
-            if img:
-                st.image(img, caption="Image générée pour le poème")
-            else:
-                st.error("Une erreur s'est produite lors de la génération de l'image.")
-
             st.subheader("Traduction")
             poem_lines = input_text.split('\n')
             translated_poem = translate_poem(poem_lines, source_lang_code, target_lang_code)
@@ -566,14 +808,11 @@ def compilateur_page():
        else:
            st.warning("Aucun poème correspondant trouvé.")
 
-
-
-
-
-
 page = st.sidebar.radio("Navigation", ["Home", "Compilateur"])
 
 if page == "Home":
     home_page()
 elif page == "Compilateur":
     compilateur_page()
+
+
