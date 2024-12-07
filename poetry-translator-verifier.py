@@ -717,39 +717,49 @@ def home_page():
 
 def compilateur_page():
     st.title("Compilateur de Lyrica Translate 🎼🌐")
+
     # Mapping des langues
     language_mapping = {
         "Français": "fr",
         "Arabe": "ar",
         "Anglais": "en"
     }
+
+    # Sélection de la langue et de la langue cible pour la traduction
     language = st.selectbox("Langue du poème :", ["Français", "Arabe", "Anglais"])
     target_lang = st.selectbox("Traduire vers :", ["Français", "Arabe", "Anglais"])
     source_lang_code = language_mapping.get(language)
     target_lang_code = language_mapping.get(target_lang)
     poems = {"Français": french_poems, "Arabe": arabic_poems, "Anglais": english_poems}[language]
+
+    # Zone de texte pour saisir le poème
     input_text = st.text_area("Écrivez ou collez votre texte ici :", height=200)
 
+    # Analyse et vérification
     if st.button("Analyser et Vérifier"):
         if not input_text.strip():
             st.error("Veuillez entrer du texte avant de continuer.")
         else:
             st.subheader("Analyse Lexicale")
             tokens, full_matches, partial_matches, word_matches = analyze_lexical(input_text, poems)
-            st.write(f"Tokens : {tokens}")
+            st.write(f"Tokens extraits : {tokens}")
 
             if full_matches:
                 st.success(f"Correspondance complète trouvée dans : {full_matches}")
             if partial_matches:
                 st.info(f"Correspondance partielle trouvée dans : {partial_matches}")
-            if word_matches:
-                st.warning("Mots trouvés :")
-                for word, occurrences in word_matches.items():
-                    st.write(f"**{word}** trouvé dans : {occurrences}")
 
             st.subheader("Analyse Syntaxique")
             syntax_result = analyze_syntax(input_text)
             st.write(syntax_result)
+
+            # Analyse syntaxique spécifique pour le français
+            if language == "Français":
+                try:
+                    syntax_french_result = analyze_french_poem(input_text)
+                    st.success(f"Analyse syntaxique spécifique (Français) réussie : {syntax_french_result}")
+                except Exception as e:
+                    st.error(f"Erreur dans l'analyse syntaxique spécifique (Français) : {e}")
 
             st.subheader("Analyse Sémantique")
             semantic_results = analyze_semantics(input_text)
@@ -770,17 +780,42 @@ def compilateur_page():
             translated_poem = translate_poem(poem_lines, source_lang_code, target_lang_code)
             st.text_area("Poème traduit :", "\n".join(translated_poem), height=200)
 
-    # Ajout de la fonctionnalité de récitation vocale
+            st.subheader("Détection des Erreurs")
+            if full_matches:
+                reference_poem = full_matches[0]
+                errors = detect_errors(input_text, reference_poem)
+                if errors:
+                    st.error("Erreurs détectées :")
+                    for error in errors:
+                        if error["type"] == "word":
+                            st.warning(f"Mot manquant : '{error['missing_word']}' à la position {error['position']} (entre '{error['before']}' et '{error['after']}').")
+                        elif error["type"] == "character":
+                            if "after_word" in error:
+                                st.warning(f"Caractère manquant : '{error['missing_character']}' après le mot '{error['after_word']}'.")
+                            else:
+                                st.warning(f"Caractère manquant : '{error['missing_character']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
+                else:
+                    st.success("Aucune erreur détectée.")
+            else:
+                st.info("Aucune correspondance complète trouvée pour détecter des erreurs.")
+
+            st.subheader("Génération d'Image")
+            image = generate_image_from_poem(input_text)
+            if image:
+                st.image(image, caption="Image générée à partir du poème")
+            else:
+                st.error("Erreur lors de la génération de l'image.")
+
+    # Fonctionnalité de récitation vocale
     st.subheader("Récitation Vocale")
     if st.button("Réciter un poème"):
-        # Transcrire l'audio
         transcribed_text = transcribe_audio()
-
         st.subheader("Texte Transcrit")
         if "Erreur" in transcribed_text:
             st.error(transcribed_text)
         else:
-            st.success(transcribed_text)
+            st.success("Texte transcrit avec succès :")
+            st.text_area("Texte transcrit :", transcribed_text, height=100)
 
             # Comparer avec les poèmes connus
             st.subheader("Comparaison avec des Poèmes Connus")
@@ -792,27 +827,28 @@ def compilateur_page():
             else:
                 st.warning("Aucune correspondance trouvée.")
 
-
-
+    # Affichage des images associées
     if st.button("Afficher une Image pour le Poème"):
-       # Identifier l'index du poème correspondant
-       matched_poem_index = None
-       for i, poem in enumerate(poems):
-           if input_text.strip() == poem.strip():
-               matched_poem_index = i + 1
-               break
+        matched_poem_index = None
+        for i, poem in enumerate(poems):
+            if input_text.strip() == poem.strip():
+                matched_poem_index = i + 1
+                break
 
-       if matched_poem_index:
-           st.success(f"Poème reconnu : Poem{matched_poem_index}")
-           show_image_for_poem_by_language(matched_poem_index, source_lang_code)
-       else:
-           st.warning("Aucun poème correspondant trouvé.")
+        if matched_poem_index:
+            st.success(f"Poème reconnu : Poem{matched_poem_index}")
+            show_image_for_poem_by_language(matched_poem_index, source_lang_code)
+        else:
+            st.warning("Aucun poème correspondant trouvé.")
 
+
+# Intégration de la navigation
 page = st.sidebar.radio("Navigation", ["Home", "Compilateur"])
 
 if page == "Home":
     home_page()
 elif page == "Compilateur":
     compilateur_page()
+
 
 
