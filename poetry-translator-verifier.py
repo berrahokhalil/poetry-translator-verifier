@@ -11,7 +11,6 @@ from PIL import Image
 from io import BytesIO
 import os
 
-openai.api_key = "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"
 
 
 
@@ -62,12 +61,13 @@ english_poems = [
 # Analyseur lexical
 # ======================================
 
-tokens = ['WORD', 'COMMA', 'DOT', 'QUESTION', 'EXCLAMATION', 'NEWLINE','QUOTE']
+tokens = ['WORD', 'COMMA', 'DOT', 'QUESTION', 'EXCLAMATION', 'NEWLINE', 'QUOTE', 'COLON']
 t_COMMA = r','
 t_DOT = r'\.'
 t_QUESTION = r'\?'
 t_EXCLAMATION = r'!'
-t_QUOTE = r"[’']"
+t_QUOTE = r"[’]"
+t_COLON = r':'
 t_ignore = ' \t'
 
 def t_WORD(t):
@@ -83,6 +83,7 @@ def t_error(t):
     st.error(f"Caractère illégal ignoré : '{t.value[0]}'")
     t.lexer.skip(1)
 
+# Construire l'analyseur lexical
 lexer = lex.lex()
 
 def analyze_lexical(input_text, poems):
@@ -115,9 +116,15 @@ def analyze_lexical(input_text, poems):
 
 
 # Règles syntaxiques pour les poèmes
+def p_start(p):
+    '''start : poem'''
+    pass
+
+# Règle générale pour identifier un poème
 def p_poem(p):
-    '''poem : line
-            | line NEWLINE poem'''
+    '''poem : french_poem
+            | english_poem
+            | arabic_poem'''
     pass
 
 def p_line(p):
@@ -349,24 +356,6 @@ def analyze_semantics(input_text):
             observations.append(f"La ligne suivante ne contient aucun mot : \"{line.strip()}\"")
 
     return observations
-
-
-def analyze_syntax(input_text):
-    """
-    Analyse syntaxique d'un texte d'entrée pour vérifier s'il respecte les règles définies pour les poèmes.
-    """
-    try:
-        # Crée le parser à partir des règles définies
-        parser = yacc.yacc()
-
-        # Effectue l'analyse syntaxique sur le texte d'entrée
-        parser.parse(input_text)
-
-        # Si aucune erreur détectée
-        return "Aucune erreur syntaxique détectée."
-    except Exception as e:
-        # Retourne un message d'erreur clair
-        return f"Erreur syntaxique : {e}"
     
 def analyze_french_poem(input_text):
     """
@@ -534,34 +523,6 @@ def generate_image_description(poem):
     return description
 
 
-def generate_image_from_poem(poem):
-    """
-    Utilise OpenAI DALL·E pour générer une image basée sur un poème.
-    """
-    description = generate_image_description(poem)
-    
-    try:
-        # Appel à l'API OpenAI pour créer une image
-        response = openai.Image.create(
-            prompt=description,
-            n=1,  # Une seule image
-            size="512x512"  # Taille de l'image
-        )
-        
-        # Obtenez l'URL de l'image générée
-        image_url = response['data'][0]['url']
-        
-        # Télécharger l'image
-        image_response = requests.get(image_url)
-        img = Image.open(BytesIO(image_response.content))
-        
-        return img
-    
-    except Exception as e:
-        print(f"Erreur lors de la génération de l'image : {e}")
-        return None
-
-
 def load_images_for_poem_by_language(poem_number, language_code):
     """
     Charge les images pour un poème spécifique et une langue donnée depuis la structure des répertoires.
@@ -689,6 +650,105 @@ def detect_errors(input_text, reference_poem):
     
     return errors
 
+def detect_syntax_errors(input_text, reference_poem):
+    """
+    Détecte les erreurs syntaxiques dans un texte en le comparant au poème de référence.
+    :param input_text: Texte saisi par l'utilisateur.
+    :param reference_poem: Poème de référence.
+    :return: Liste des erreurs détectées.
+    """
+    errors = []
+    
+    # Séparer les mots dans le texte d'entrée et le poème de référence
+    input_words = input_text.strip().split()
+    reference_words = reference_poem.strip().split()
+    
+    # Vérification mot par mot
+    for i, word in enumerate(reference_words):
+        if i >= len(input_words):  # Mot manquant
+            errors.append({
+                "type": "missing_word",
+                "missing_word": word,
+                "position": i
+            })
+        elif input_words[i] != word:  # Mot incorrect
+            errors.append({
+                "type": "incorrect_word",
+                "expected_word": word,
+                "actual_word": input_words[i],
+                "position": i
+            })
+
+    # Vérification des caractères supplémentaires dans le texte d'entrée
+    if len(input_words) > len(reference_words):
+        for i in range(len(reference_words), len(input_words)):
+            errors.append({
+                "type": "extra_word",
+                "extra_word": input_words[i],
+                "position": i
+            })
+    
+    # Vérification des caractères individuels dans les mots
+    for i, (input_word, ref_word) in enumerate(zip(input_words, reference_words)):
+        if input_word != ref_word:
+            for j, (input_char, ref_char) in enumerate(zip(input_word, ref_word)):
+                if input_char != ref_char:
+                    errors.append({
+                        "type": "character_error",
+                        "expected_char": ref_char,
+                        "actual_char": input_char,
+                        "word_position": i,
+                        "char_position": j
+                    })
+            # Vérifier si des caractères manquent dans un mot
+            if len(input_word) < len(ref_word):
+                for j in range(len(input_word), len(ref_word)):
+                    errors.append({
+                        "type": "missing_character",
+                        "missing_char": ref_word[j],
+                        "word_position": i,
+                        "char_position": j
+                    })
+            # Vérifier si des caractères supplémentaires existent dans un mot
+            elif len(input_word) > len(ref_word):
+                for j in range(len(ref_word), len(input_word)):
+                    errors.append({
+                        "type": "extra_character",
+                        "extra_char": input_word[j],
+                        "word_position": i,
+                        "char_position": j
+                    })
+    
+    return errors
+
+
+def analyze_syntax(input_text, language):
+    """
+    Analyse syntaxique du texte en fonction des poèmes de la langue sélectionnée.
+    :param input_text: Texte saisi par l'utilisateur.
+    :param language: Langue sélectionnée (fr, ar, en).
+    :return: Résultat d'analyse syntaxique et erreurs détectées.
+    """
+    poems_dict = {"fr": french_poems, "ar": arabic_poems, "en": english_poems}
+    poems = poems_dict.get(language, [])
+
+    # Identifier le poème correspondant
+    best_match = None
+    highest_similarity = 0
+    for poem in poems:
+        similarity = difflib.SequenceMatcher(None, input_text.strip(), poem.strip()).ratio()
+        if similarity > highest_similarity:
+            highest_similarity = similarity
+            best_match = poem
+
+    if best_match is None:
+        return "Aucun poème correspondant trouvé.", []
+
+    # Détecter les erreurs dans le poème
+    errors = detect_syntax_errors(input_text, best_match)
+
+    return f"Poème correspondant détecté : {best_match}", errors
+
 
 
 
@@ -750,16 +810,26 @@ def compilateur_page():
                 st.info(f"Correspondance partielle trouvée dans : {partial_matches}")
 
             st.subheader("Analyse Syntaxique")
-            syntax_result = analyze_syntax(input_text)
+            syntax_result, syntax_errors = analyze_syntax(input_text, source_lang_code)
             st.write(syntax_result)
 
-            # Analyse syntaxique spécifique pour le français
-            if language == "Français":
-                try:
-                    syntax_french_result = analyze_french_poem(input_text)
-                    st.success(f"Analyse syntaxique spécifique (Français) réussie : {syntax_french_result}")
-                except Exception as e:
-                    st.error(f"Erreur dans l'analyse syntaxique spécifique (Français) : {e}")
+            if syntax_errors:
+                st.error("Erreurs détectées :")
+                for error in syntax_errors:
+                    if error["type"] == "missing_word":
+                        st.warning(f"Mot manquant : '{error['missing_word']}' à la position {error['position']}.")
+                    elif error["type"] == "extra_word":
+                        st.warning(f"Mot supplémentaire : '{error['extra_word']}' à la position {error['position']}.")
+                    elif error["type"] == "incorrect_word":
+                        st.warning(f"Mot incorrect à la position {error['position']}: attendu '{error['expected_word']}', trouvé '{error['actual_word']}'.")
+                    elif error["type"] == "missing_character":
+                        st.warning(f"Caractère manquant : '{error['missing_char']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
+                    elif error["type"] == "extra_character":
+                        st.warning(f"Caractère supplémentaire : '{error['extra_char']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
+                    elif error["type"] == "character_error":
+                        st.warning(f"Caractère incorrect dans le mot à la position {error['word_position']}, caractère {error['char_position']}: attendu '{error['expected_char']}', trouvé '{error['actual_char']}'.")
+            else:
+                st.success("Aucune erreur détectée.")
 
             st.subheader("Analyse Sémantique")
             semantic_results = analyze_semantics(input_text)
@@ -798,13 +868,6 @@ def compilateur_page():
                     st.success("Aucune erreur détectée.")
             else:
                 st.info("Aucune correspondance complète trouvée pour détecter des erreurs.")
-
-            st.subheader("Génération d'Image")
-            image = generate_image_from_poem(input_text)
-            if image:
-                st.image(image, caption="Image générée à partir du poème")
-            else:
-                st.error("Erreur lors de la génération de l'image.")
 
     # Fonctionnalité de récitation vocale
     st.subheader("Récitation Vocale")
