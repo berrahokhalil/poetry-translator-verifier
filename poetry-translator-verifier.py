@@ -310,7 +310,7 @@ def p_error_arabic(p):
 
 
 
-def analyze_semantics(input_text):
+def analyze_semantics(input_text, detected_lang):
     """
     Analyse sémantique d'un poème pour détecter des anomalies.
     """
@@ -320,10 +320,9 @@ def analyze_semantics(input_text):
     if len(input_text.split()) < 3:
         observations.append("Le texte semble trop court pour être un poème.")
 
-    # Vérification des majuscules
-    if input_text == input_text.upper():
+    # Vérification des majuscules (sauf pour l'arabe)
+    if detected_lang != "ar" and input_text == input_text.upper():
         observations.append("Le texte est entièrement en majuscules, ce qui peut être incohérent pour un poème.")
-
 
     # Vérification des virgules consécutives
     if re.search(r',,{1,}', input_text):
@@ -341,8 +340,6 @@ def analyze_semantics(input_text):
     if re.search(r'\?{2,}', input_text):
         observations.append("Le texte contient des points d'interrogation consécutifs, ce qui est incorrect.")
 
-
-
     # Vérification des lignes vides
     lines = input_text.split('\n')
     for i, line in enumerate(lines):
@@ -356,6 +353,7 @@ def analyze_semantics(input_text):
             observations.append(f"La ligne suivante ne contient aucun mot : \"{line.strip()}\"")
 
     return observations
+
     
 def analyze_french_poem(input_text):
     """
@@ -574,22 +572,23 @@ def show_image_for_poem_by_language(poem_number, language_code):
     st.session_state[f"poem_{language_code}_{poem_number}_index"] += 1
 
 
+from langdetect import detect, DetectorFactory
+DetectorFactory.seed = 0  # Assure des résultats cohérents
+
 def detect_language(input_text):
     """
-    Détecte la langue d'un poème saisi.
+    Détecte la langue d'un texte en utilisant langdetect.
     """
-    arabic_chars = re.compile(r'[\u0600-\u06FF]')
-    french_chars = re.compile(r'[àâçéèêëîïôûùüÿœ]')
-    english_chars = re.compile(r'[a-zA-Z]')
-
-    if arabic_chars.search(input_text):
-        return "ar"
-    elif french_chars.search(input_text):
-        return "fr"
-    elif english_chars.search(input_text):
-        return "en"
-    else:
-        return None
+    try:
+        detected_lang = detect(input_text)
+        lang_mapping = {
+            "fr": "fr",
+            "ar": "ar",
+            "en": "en"
+        }
+        return lang_mapping.get(detected_lang, "unknown")
+    except Exception as e:
+        return "unknown"
 
 
 def identify_poem(input_text, language):
@@ -725,10 +724,20 @@ def detect_syntax_errors(input_text, reference_poem):
 def analyze_syntax(input_text, language):
     """
     Analyse syntaxique du texte en fonction des poèmes de la langue sélectionnée.
+    Vérifie également si la langue du texte saisi correspond à la langue choisie.
     :param input_text: Texte saisi par l'utilisateur.
     :param language: Langue sélectionnée (fr, ar, en).
     :return: Résultat d'analyse syntaxique et erreurs détectées.
     """
+    detected_language = detect_language(input_text)  # Détection automatique de la langue
+    
+    if detected_language != language:
+        return (
+            f"La langue du texte saisi ne correspond pas à la langue sélectionnée. "
+            f"Langue détectée : {detected_language}. Langue attendue : {language}.",
+            []
+        )
+
     poems_dict = {"fr": french_poems, "ar": arabic_poems, "en": english_poems}
     poems = poems_dict.get(language, [])
 
@@ -752,27 +761,40 @@ def analyze_syntax(input_text, language):
 
 
 
+
 # ======================================
 # Application Streamlit
 # ======================================
 
 
 def home_page():
-    st.title("Bienvenue sur Lyrica Translate 🎼🌐")
+    st.title("🎼 Bienvenue sur Lyrica Translate 🌐")
     st.markdown("""
-    🎵 **Compilateur-Traducteur Multilingue** 🌍  
-    Cette application révolutionnaire analyse 🕵️‍♂️, traduit 🌐, et vérifie ✅ des poèmes 🎶 dans les langues **français 🇫🇷, arabe 🇸🇦, et anglais 🇬🇧**.  
-    Elle intègre des outils avancés 📊 comme Lex & Yacc pour une analyse lexicale et syntaxique précise, et la reconnaissance vocale 🎙️ pour une expérience interactive futuriste.  
+    ## 🎵 **Compilateur-Traducteur Multilingue Avancé**  
+    Découvrez **Lyrica Translate**, une application révolutionnaire qui transcende les frontières linguistiques et artistiques pour donner vie à vos poèmes 🎶.  
 
-    🖋️ ✒️ **Les fonctionnalités incluent :**  
-    - Analyse syntaxique & sémantique 🔍  
-    - Détection d'erreurs linguistiques ⚠️  
-    - Traduction fluide et fidèle entre langues 🌟  
-    - Interface utilisateur innovante et conviviale 🎨  
-    - Reconnaissance vocale pour une saisie rapide 🎤  
+    ### 🌟 **Fonctionnalités principales**  
+    - **Analyse Lexicale & Syntaxique** 🕵️‍♂️ : Identifiez les mots, les erreurs de syntaxe, et validez la structure de vos poèmes dans les langues **français 🇫🇷, arabe 🇸🇦, et anglais 🇬🇧**.  
+    - **Analyse Sémantique** 📖 : Détectez les anomalies contextuelles et améliorez la cohérence de vos écrits.  
+    - **Traduction Multilingue** 🌐 : Traduisez vos poèmes entre **français**, **arabe**, et **anglais** avec une précision exceptionnelle.  
+    - **Détection d'Erreurs Linguistiques** ⚠️ : Trouvez les mots ou caractères manquants, les ajouts superflus, et corrigez vos textes avec facilité.  
+    - **Analyse Stylistique** ✨ : Explorez les schémas de rimes, détectez les figures de style, et améliorez vos créations.  
+    - **Récitation Vocale** 🎙️ : Récitez vos poèmes directement au compilateur pour les analyser et les comparer aux poèmes connus.  
+    - **Détection Automatique de la Langue** 🌍 : Vérifiez si la langue saisie correspond à la langue attendue pour un traitement précis.  
+    - **Génération d'Images Artistiques** 🖼️ : Transformez vos poèmes en images uniques et captivantes grâce à une technologie avancée.  
 
-    Transformez chaque mot en chef-d'œuvre 💎, que vous soyez poète, artiste ou curieux !
+    ### 💡 **Pourquoi choisir Lyrica Translate ?**  
+    - **Intuitif & Innovant** : Une interface conviviale et facile à utiliser, même pour les novices.  
+    - **Polyvalent & Puissant** : Parfait pour les poètes, les linguistes, et les amateurs de langues.  
+    - **Technologie de Pointe** : Intègre des outils comme Lex & Yacc pour des analyses approfondies.  
+
+    ### 🎨 **Transformez vos poèmes en œuvres d'art**  
+    Avec notre fonctionnalité de génération d'images, visualisez vos poèmes sous un nouvel angle artistique. Exprimez-vous non seulement avec des mots, mais aussi avec des images !
+
+    ---
+    **Prêt à explorer ?** Sélectionnez une option dans la barre latérale pour commencer votre voyage poétique ! ✨
     """)
+
 
 
 def compilateur_page():
@@ -795,6 +817,13 @@ def compilateur_page():
     # Zone de texte pour saisir le poème
     input_text = st.text_area("Écrivez ou collez votre texte ici :", height=200)
 
+     # **Détection de la langue avant toute analyse**
+    if input_text.strip():  # Vérifiez que l'utilisateur a saisi un texte
+        detected_lang = detect_language(input_text)
+        if detected_lang != source_lang_code:
+            st.error(f"La langue du texte saisi ne correspond pas à la langue sélectionnée. Langue détectée : {detected_lang}. Langue attendue : {source_lang_code}.")
+            return  # Arrêtez l'exécution si les langues ne correspondent pas
+
     # Analyse et vérification
     if st.button("Analyser et Vérifier"):
         if not input_text.strip():
@@ -811,28 +840,34 @@ def compilateur_page():
 
             st.subheader("Analyse Syntaxique")
             syntax_result, syntax_errors = analyze_syntax(input_text, source_lang_code)
-            st.write(syntax_result)
 
-            if syntax_errors:
-                st.error("Erreurs détectées :")
-                for error in syntax_errors:
-                    if error["type"] == "missing_word":
-                        st.warning(f"Mot manquant : '{error['missing_word']}' à la position {error['position']}.")
-                    elif error["type"] == "extra_word":
-                        st.warning(f"Mot supplémentaire : '{error['extra_word']}' à la position {error['position']}.")
-                    elif error["type"] == "incorrect_word":
-                        st.warning(f"Mot incorrect à la position {error['position']}: attendu '{error['expected_word']}', trouvé '{error['actual_word']}'.")
-                    elif error["type"] == "missing_character":
-                        st.warning(f"Caractère manquant : '{error['missing_char']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
-                    elif error["type"] == "extra_character":
-                        st.warning(f"Caractère supplémentaire : '{error['extra_char']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
-                    elif error["type"] == "character_error":
-                        st.warning(f"Caractère incorrect dans le mot à la position {error['word_position']}, caractère {error['char_position']}: attendu '{error['expected_char']}', trouvé '{error['actual_char']}'.")
+            # Affichage des résultats
+            if "Langue détectée" in syntax_result:  # Vérifier si une langue incorrecte est détectée
+                st.error(syntax_result)
             else:
-                st.success("Aucune erreur détectée.")
+                st.write(syntax_result)
+
+                if syntax_errors:
+                    st.error("Erreurs détectées :")
+                    for error in syntax_errors:
+                        if error["type"] == "missing_word":
+                            st.warning(f"Mot manquant : '{error['missing_word']}' à la position {error['position']}.")
+                        elif error["type"] == "extra_word":
+                            st.warning(f"Mot supplémentaire : '{error['extra_word']}' à la position {error['position']}.")
+                        elif error["type"] == "incorrect_word":
+                            st.warning(f"Mot incorrect à la position {error['position']}: attendu '{error['expected_word']}', trouvé '{error['actual_word']}'.")
+                        elif error["type"] == "missing_character":
+                            st.warning(f"Caractère manquant : '{error['missing_char']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
+                        elif error["type"] == "extra_character":
+                            st.warning(f"Caractère supplémentaire : '{error['extra_char']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
+                        elif error["type"] == "character_error":
+                            st.warning(f"Caractère incorrect dans le mot à la position {error['word_position']}, caractère {error['char_position']}: attendu '{error['expected_char']}', trouvé '{error['actual_char']}'.")
+                else:
+                    st.success("Aucune erreur détectée.")
 
             st.subheader("Analyse Sémantique")
-            semantic_results = analyze_semantics(input_text)
+            detected_lang = detect_language(input_text)
+            semantic_results = analyze_semantics(input_text, detected_lang)
             if semantic_results:
                 for obs in semantic_results:
                     st.warning(obs)
@@ -849,25 +884,7 @@ def compilateur_page():
             poem_lines = input_text.split('\n')
             translated_poem = translate_poem(poem_lines, source_lang_code, target_lang_code)
             st.text_area("Poème traduit :", "\n".join(translated_poem), height=200)
-
-            st.subheader("Détection des Erreurs")
-            if full_matches:
-                reference_poem = full_matches[0]
-                errors = detect_errors(input_text, reference_poem)
-                if errors:
-                    st.error("Erreurs détectées :")
-                    for error in errors:
-                        if error["type"] == "word":
-                            st.warning(f"Mot manquant : '{error['missing_word']}' à la position {error['position']} (entre '{error['before']}' et '{error['after']}').")
-                        elif error["type"] == "character":
-                            if "after_word" in error:
-                                st.warning(f"Caractère manquant : '{error['missing_character']}' après le mot '{error['after_word']}'.")
-                            else:
-                                st.warning(f"Caractère manquant : '{error['missing_character']}' dans le mot à la position {error['word_position']}, caractère {error['char_position']}.")
-                else:
-                    st.success("Aucune erreur détectée.")
-            else:
-                st.info("Aucune correspondance complète trouvée pour détecter des erreurs.")
+     
 
     # Fonctionnalité de récitation vocale
     st.subheader("Récitation Vocale")
