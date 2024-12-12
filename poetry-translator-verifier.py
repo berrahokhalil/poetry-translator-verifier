@@ -354,24 +354,6 @@ def analyze_semantics(input_text, detected_lang):
 
     return observations
 
-    
-def analyze_french_poem(input_text):
-    """
-    Analyse syntaxique spécifique pour les poèmes français.
-    """
-    import ply.yacc as yacc
-
-    # Crée un parser spécifique basé sur les règles des poèmes français
-    parser = yacc.yacc(module=__import__(__name__), start="french_poem")
-
-    try:
-        parser.parse(input_text)
-        return "Poème en français analysé avec succès."
-    except Exception as e:
-        return f"Erreur d'analyse syntaxique : {e}"
-
-
-
 
 
 # ======================================
@@ -678,7 +660,7 @@ def detect_syntax_errors(input_text, reference_poem):
                 "position": i
             })
 
-    # Vérification des caractères supplémentaires dans le texte d'entrée
+    # Vérification des mots supplémentaires dans le texte d'entrée
     if len(input_words) > len(reference_words):
         for i in range(len(reference_words), len(input_words)):
             errors.append({
@@ -686,39 +668,11 @@ def detect_syntax_errors(input_text, reference_poem):
                 "extra_word": input_words[i],
                 "position": i
             })
-    
-    # Vérification des caractères individuels dans les mots
-    for i, (input_word, ref_word) in enumerate(zip(input_words, reference_words)):
-        if input_word != ref_word:
-            for j, (input_char, ref_char) in enumerate(zip(input_word, ref_word)):
-                if input_char != ref_char:
-                    errors.append({
-                        "type": "character_error",
-                        "expected_char": ref_char,
-                        "actual_char": input_char,
-                        "word_position": i,
-                        "char_position": j
-                    })
-            # Vérifier si des caractères manquent dans un mot
-            if len(input_word) < len(ref_word):
-                for j in range(len(input_word), len(ref_word)):
-                    errors.append({
-                        "type": "missing_character",
-                        "missing_char": ref_word[j],
-                        "word_position": i,
-                        "char_position": j
-                    })
-            # Vérifier si des caractères supplémentaires existent dans un mot
-            elif len(input_word) > len(ref_word):
-                for j in range(len(ref_word), len(input_word)):
-                    errors.append({
-                        "type": "extra_character",
-                        "extra_char": input_word[j],
-                        "word_position": i,
-                        "char_position": j
-                    })
-    
+
     return errors
+
+
+
 
 
 def analyze_syntax(input_text, language):
