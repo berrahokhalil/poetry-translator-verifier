@@ -73,5 +73,5 @@ The primary purpose of this project is to ensure the accuracy, elegance, and cul
 
 
 ## Launch the Streamlit application::
-- streamlit run app.py
+- streamlit run poetry-translator-verifier.py
 
