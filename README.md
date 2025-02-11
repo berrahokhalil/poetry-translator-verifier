@@ -66,3 +66,12 @@ The primary purpose of this project is to ensure the accuracy, elegance, and cul
 1. Clone the repository:
    ```bash
    git clone https://github.com/berrahokhalil/poetry-translator-verifier
+
+
+## Install the required dependencies:
+- pip install -r requirements.txt
+
+
+## Launch the Streamlit application::
+- streamlit run app.py
+
